@@ -7,22 +7,31 @@ import { ThemedView } from '@/components/ThemedView';
 
 export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
+  const [enemy, setEnemy] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const fetchUsers = async () => {
     try {
       const res = await fetch('http://192.168.0.104:4000/users');
       const data = await res.json();
-      setUser(data && data.length > 0 ? data[0] : { name: 'Guest' });
+      if (data && data.length >= 2) {
+        setUser(data[0]);
+        setEnemy(data[1]);
+      } else {
+        setUser({ name: 'Guest', currentHp: 100, maxHp: 100 });
+        setEnemy({ name: 'Enemy', currentHp: 100, maxHp: 100 });
+      }
     } catch (err) {
       console.error('API error:', err);
+      setUser({ name: 'Guest', currentHp: 100, maxHp: 100 });
+      setEnemy({ name: 'Enemy', currentHp: 100, maxHp: 100 });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUser();
+    fetchUsers();
   }, []);
 
   const handleAttack = async () => console.log('Attack initiated');
@@ -34,16 +43,29 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.mainContent}>
         <View style={styles.enemySection}>
-          <ThemedText type="title" style={[styles.sectionTitle, styles.whiteText]}>Enemy</ThemedText>
+          <ThemedText type="title" style={[styles.sectionTitle, styles.whiteText]}>
+            {loading ? 'Enemy' : enemy?.name || 'Enemy'}
+          </ThemedText>
           <Image
             source={require('@/assets/images/charlotte.png')}
             style={styles.enemyPhoto}
           />
+          <ThemedView style={styles.enemyInfo}>
+            {loading ? (
+              <ThemedText style={styles.whiteText}>Loading...</ThemedText>
+            ) : (
+              <ThemedText type="title" style={styles.whiteText}>
+                HP: {enemy?.currentHp || 100}/{enemy?.maxHp || 100}
+              </ThemedText>
+            )}
+          </ThemedView>
         </View>
       </ScrollView>
       <View style={styles.commandCenter}>
         <View style={styles.userSection}>
-          <ThemedText type="title" style={[styles.sectionTitle, styles.whiteText]}>Your Character</ThemedText>
+          <ThemedText type="title" style={[styles.sectionTitle, styles.whiteText]}>
+            {loading ? 'Your Character' : user?.name || 'Your Character'}
+          </ThemedText>
           <Image
             source={require('@/assets/images/shayshay.png')}
             style={styles.userPhoto}
@@ -53,7 +75,7 @@ export default function HomeScreen() {
               <ThemedText style={styles.whiteText}>Loading user...</ThemedText>
             ) : (
               <ThemedText type="title" style={styles.whiteText}>
-                HP: 100/100
+                HP: {user?.currentHp || 100}/{user?.maxHp || 100}
               </ThemedText>
             )}
           </ThemedView>
@@ -77,22 +99,25 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 10,
     paddingBottom: 400, // extra bottom padding so content doesn't get hidden behind the commandCenter
     backgroundColor: '#000000',
   },
   enemySection: {
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 5,
     backgroundColor: '#000000',
     borderRadius: 10,
-    margin: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
     // borderWidth: 2,
     // borderColor: '#f44336',
   },
   userSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   sectionTitle: {
     marginBottom: 15,
@@ -104,14 +129,20 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   userPhoto: {
-    height: 200,
-    width: 200,
+    height: 150,
+    width: 150,
     resizeMode: 'contain',
     alignSelf: 'center',
   },
   userInfo: {
     alignItems: 'center',
     marginVertical: 10,
+    backgroundColor: '#000000',
+  },
+  enemyInfo: {
+    alignItems: 'center',
+    marginVertical: 10,
+    paddingBottom: 20,
     backgroundColor: '#000000',
   },
   whiteText: {
@@ -127,13 +158,13 @@ const styles = StyleSheet.create({
     bottom: 90,
     left: 0,
     right: 0,
-    paddingVertical: 20,
-    paddingTop: 30,
+    paddingVertical: 15,
+    paddingTop: 20,
     backgroundColor: '#000000',
     zIndex: 10,     // ensures the command center stays on top
     elevation: 10,  // for Android
     borderTopWidth: 2,
     borderTopColor: '#ffffff',
-    minHeight: 300,
+    minHeight: 250,
   },
 });

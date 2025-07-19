@@ -17,4 +17,6 @@ model User {
   id    Int     @id @default(autoincrement())
   name  String
   email String  @unique
+  maxHp      Int    
+  currentHp  Int 
 }
