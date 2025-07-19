@@ -1,9 +1,9 @@
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Button, View, SafeAreaView, ScrollView } from 'react-native';
-import { useEffect, useState } from 'react';
 
-import { HelloWave } from '@/components/HelloWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { attackCommand, blockCommand, healCommand, curseCommand } from '../manager/basic-commands-handler';
 
 export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
@@ -17,14 +17,9 @@ export default function HomeScreen() {
       if (data && data.length >= 2) {
         setUser(data[0]);
         setEnemy(data[1]);
-      } else {
-        setUser({ name: 'Guest', currentHp: 100, maxHp: 100 });
-        setEnemy({ name: 'Enemy', currentHp: 100, maxHp: 100 });
       }
     } catch (err) {
       console.error('API error:', err);
-      setUser({ name: 'Guest', currentHp: 100, maxHp: 100 });
-      setEnemy({ name: 'Enemy', currentHp: 100, maxHp: 100 });
     } finally {
       setLoading(false);
     }
@@ -34,10 +29,53 @@ export default function HomeScreen() {
     fetchUsers();
   }, []);
 
-  const handleAttack = async () => console.log('Attack initiated');
-  const handleBlock = async () => console.log('Block initiated');
-  const handleHeal = async () => console.log('Heal initiated');
-  const handleCurse = async () => console.log('Curse initiated');
+  const handleAttack = async () => {
+    if (user && enemy) {
+      try {
+        const response = await attackCommand(user.id, enemy.id);
+        console.log(response.message);
+        await fetchUsers();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleBlock = async () => {
+    if (user && enemy) {
+      try {
+        const response = await blockCommand(user.id, enemy.id);
+        console.log(response.message);
+        await fetchUsers();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleHeal = async () => {
+    if (user && enemy) {
+      try {
+        const response = await healCommand(user.id, enemy.id);
+        console.log(response.message);
+        await fetchUsers();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleCurse = async () => {
+    if (user && enemy) {
+      try {
+        const response = await curseCommand(user.id, enemy.id);
+        console.log(response.message);
+        await fetchUsers();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,7 +138,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 10,
-    paddingBottom: 400, // extra bottom padding so content doesn't get hidden behind the commandCenter
+    paddingBottom: 400,
     backgroundColor: '#000000',
   },
   enemySection: {
@@ -112,8 +150,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 20,
     marginBottom: 20,
-    // borderWidth: 2,
-    // borderColor: '#f44336',
   },
   userSection: {
     alignItems: 'center',
@@ -161,8 +197,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingTop: 20,
     backgroundColor: '#000000',
-    zIndex: 10,     // ensures the command center stays on top
-    elevation: 10,  // for Android
+    zIndex: 10,
+    elevation: 10,
     borderTopWidth: 2,
     borderTopColor: '#ffffff',
     minHeight: 250,
