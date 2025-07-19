@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Button, View, SafeAreaView, ScrollView } from 'react-native';
+import { Image, StyleSheet, Button, View, SafeAreaView, ScrollView, TouchableOpacity, Text } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -111,10 +111,10 @@ export default function HomeScreen() {
               <ThemedText style={styles.whiteText}>Loading...</ThemedText>
             ) : (
               <>
-                <ThemedText type="title" style={styles.whiteText}>
+                <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
                   HP: {enemy?.currentHp || 100}/{enemy?.maxHp || 100}
                 </ThemedText>
-                <ThemedText type="title" style={styles.whiteText}>
+                <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
                   MP: {enemy?.currentMp || 100}/{enemy?.maxMp || 100}
                 </ThemedText>
               </>
@@ -136,10 +136,10 @@ export default function HomeScreen() {
               <ThemedText style={styles.whiteText}>Loading user...</ThemedText>
             ) : (
               <>
-                <ThemedText type="title" style={styles.whiteText}>
+                <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
                   HP: {user?.currentHp || 100}/{user?.maxHp || 100}
                 </ThemedText>
-                <ThemedText type="title" style={styles.whiteText}>
+                <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
                   MP: {user?.currentMp || 100}/{user?.maxMp || 100}
                 </ThemedText>
               </>
@@ -153,8 +153,36 @@ export default function HomeScreen() {
             <>
               <Button title="Attack" onPress={handleAttack} />
               <Button title="Block" onPress={handleBlock} />
-              <Button title="Heal" onPress={handleHeal} />
-              <Button title="Curse" onPress={handleCurse} />
+              <TouchableOpacity
+                style={[
+                  styles.customButton,
+                  (user?.currentMp || 0) < 5 ? styles.disabledButton : styles.enabledButton
+                ]}
+                onPress={handleHeal}
+                disabled={(user?.currentMp || 0) < 5}
+              >
+                <Text style={[
+                  styles.buttonText,
+                  (user?.currentMp || 0) < 5 ? styles.disabledButtonText : styles.enabledButtonText
+                ]}>
+                  Heal (5 MP)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.customButton,
+                  (user?.currentMp || 0) < 7 ? styles.disabledButton : styles.enabledButton
+                ]}
+                onPress={handleCurse}
+                disabled={(user?.currentMp || 0) < 7}
+              >
+                <Text style={[
+                  styles.buttonText,
+                  (user?.currentMp || 0) < 7 ? styles.disabledButtonText : styles.enabledButtonText
+                ]}>
+                  Curse (7 MP)
+                </Text>
+              </TouchableOpacity>
             </>
           ) : gameOver ? (
             <View style={styles.gameOverContainer}>
@@ -179,7 +207,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 10,
-    paddingBottom: 400,
+    paddingBottom: 200,
     backgroundColor: '#000000',
   },
   enemySection: {
@@ -194,7 +222,7 @@ const styles = StyleSheet.create({
   },
   userSection: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   sectionTitle: {
     marginBottom: 15,
@@ -206,8 +234,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   userPhoto: {
-    height: 150,
-    width: 150,
+    height: 120,
+    width: 120,
     resizeMode: 'contain',
     alignSelf: 'center',
   },
@@ -225,24 +253,30 @@ const styles = StyleSheet.create({
   whiteText: {
     color: '#ffffff',
   },
+  hpMpText: {
+    fontSize: 18,
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    alignItems: 'center',
     marginHorizontal: 16,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   commandCenter: {
     position: 'absolute',
     bottom: 90,
     left: 0,
     right: 0,
-    paddingVertical: 15,
-    paddingTop: 20,
+    paddingVertical: 10,
+    paddingTop: 15,
     backgroundColor: '#000000',
     zIndex: 10,
     elevation: 10,
     borderTopWidth: 2,
     borderTopColor: '#ffffff',
-    minHeight: 250,
+    minHeight: 180,
   },
   gameOverContainer: {
     alignItems: 'center',
@@ -251,5 +285,33 @@ const styles = StyleSheet.create({
   gameOverText: {
     fontSize: 24,
     marginBottom: 10,
+  },
+  customButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minHeight: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  enabledButton: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  disabledButton: {
+    backgroundColor: '#666666',
+    borderColor: '#666666',
+    opacity: 0.6,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  enabledButtonText: {
+    color: '#FFFFFF',
+  },
+  disabledButtonText: {
+    color: '#CCCCCC',
   },
 });

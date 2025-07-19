@@ -12,7 +12,10 @@ app.use(express.json());
 
 app.get('/users', async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      orderBy: { id: 'asc' }
+    });
+    console.log('Users returned from DB:', users.map(u => `ID: ${u.id}, Name: ${u.name}`));
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
