@@ -53,3 +53,16 @@ export async function curseCommand(playerId: number, enemyId: number) {
     throw error;
   }
 }
+
+export async function startGameCommand() {
+  try {
+    const res = await fetch('http://192.168.0.104:4000/game/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return await res.json();
+  } catch (error) {
+    console.error('Error starting game:', error);
+    throw error;
+  }
+}

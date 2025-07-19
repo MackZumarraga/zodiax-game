@@ -3,12 +3,14 @@ import { Image, StyleSheet, Button, View, SafeAreaView, ScrollView } from 'react
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { attackCommand, blockCommand, healCommand, curseCommand } from '../manager/basic-commands-handler';
+import { attackCommand, blockCommand, healCommand, curseCommand, startGameCommand } from '../manager/basic-commands-handler';
 
 export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
   const [enemy, setEnemy] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -17,6 +19,11 @@ export default function HomeScreen() {
       if (data && data.length >= 2) {
         setUser(data[0]);
         setEnemy(data[1]);
+        
+        if (gameStarted && (data[0]?.currentHp <= 0 || data[1]?.currentHp <= 0)) {
+          setGameOver(true);
+          setGameStarted(false);
+        }
       }
     } catch (err) {
       console.error('API error:', err);
@@ -77,6 +84,17 @@ export default function HomeScreen() {
     }
   };
 
+  const handleStartGame = async () => {
+    try {
+      await startGameCommand();
+      setGameStarted(true);
+      setGameOver(false);
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error starting game:', error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.mainContent}>
@@ -129,10 +147,23 @@ export default function HomeScreen() {
           </ThemedView>
         </View>
         <View style={styles.buttonContainer}>
-          <Button title="Attack" onPress={handleAttack} />
-          <Button title="Block" onPress={handleBlock} />
-          <Button title="Heal" onPress={handleHeal} />
-          <Button title="Curse" onPress={handleCurse} />
+          {!gameStarted && !loading ? (
+            <Button title="Start Game" onPress={handleStartGame} />
+          ) : gameStarted && !gameOver ? (
+            <>
+              <Button title="Attack" onPress={handleAttack} />
+              <Button title="Block" onPress={handleBlock} />
+              <Button title="Heal" onPress={handleHeal} />
+              <Button title="Curse" onPress={handleCurse} />
+            </>
+          ) : gameOver ? (
+            <View style={styles.gameOverContainer}>
+              <ThemedText type="title" style={[styles.whiteText, styles.gameOverText]}>
+                Game Over!
+              </ThemedText>
+              <Button title="Start New Game" onPress={handleStartGame} />
+            </View>
+          ) : null}
         </View>
       </View>
     </SafeAreaView>
@@ -212,5 +243,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderTopColor: '#ffffff',
     minHeight: 250,
+  },
+  gameOverContainer: {
+    alignItems: 'center',
+    gap: 20,
+  },
+  gameOverText: {
+    fontSize: 24,
+    marginBottom: 10,
   },
 });

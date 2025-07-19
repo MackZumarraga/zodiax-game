@@ -65,3 +65,14 @@ export async function performAction(playerId, enemyId, action) {
   
   return log;
 }
+
+export async function resetAllPlayersStats() {
+  await prisma.user.updateMany({
+    data: {
+      currentHp: 100,
+      currentMp: 10
+    }
+  });
+  
+  return 'Game started! All players HP and MP reset to maximum.';
+}

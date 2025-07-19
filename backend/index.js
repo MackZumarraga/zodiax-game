@@ -2,7 +2,7 @@ import 'dotenv/config.js';
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
-import { handleAttack, handleBlock, handleHeal, handleCurse } from './game-logic/battleController.js';
+import { handleAttack, handleBlock, handleHeal, handleCurse, handleStartGame } from './game-logic/battleController.js';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -23,5 +23,6 @@ app.post('/battle/attack', handleAttack);
 app.post('/battle/block', handleBlock);
 app.post('/battle/heal', handleHeal);
 app.post('/battle/curse', handleCurse);
+app.post('/game/start', handleStartGame);
 
 app.listen(4000, () => console.log('Zodiax backend running on port 4000'));

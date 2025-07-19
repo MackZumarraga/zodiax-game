@@ -1,4 +1,4 @@
-import { performAction } from './battleSimulator.js';
+import { performAction, resetAllPlayersStats } from './battleSimulator.js';
 
 export async function handleAttack(req, res) {
   try {
@@ -34,6 +34,15 @@ export async function handleCurse(req, res) {
   try {
     const { playerId, enemyId } = req.body;
     const log = await performAction(playerId, enemyId, 'curse');
+    res.json({ success: true, message: log });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function handleStartGame(_req, res) {
+  try {
+    const log = await resetAllPlayersStats();
     res.json({ success: true, message: log });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
