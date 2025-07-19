@@ -19,4 +19,6 @@ model User {
   email String  @unique
   maxHp      Int    
   currentHp  Int 
+  currentMp  Int
+  maxMp      Int
 }

@@ -92,9 +92,14 @@ export default function HomeScreen() {
             {loading ? (
               <ThemedText style={styles.whiteText}>Loading...</ThemedText>
             ) : (
-              <ThemedText type="title" style={styles.whiteText}>
-                HP: {enemy?.currentHp || 100}/{enemy?.maxHp || 100}
-              </ThemedText>
+              <>
+                <ThemedText type="title" style={styles.whiteText}>
+                  HP: {enemy?.currentHp || 100}/{enemy?.maxHp || 100}
+                </ThemedText>
+                <ThemedText type="title" style={styles.whiteText}>
+                  MP: {enemy?.currentMp || 100}/{enemy?.maxMp || 100}
+                </ThemedText>
+              </>
             )}
           </ThemedView>
         </View>
@@ -112,9 +117,14 @@ export default function HomeScreen() {
             {loading ? (
               <ThemedText style={styles.whiteText}>Loading user...</ThemedText>
             ) : (
-              <ThemedText type="title" style={styles.whiteText}>
-                HP: {user?.currentHp || 100}/{user?.maxHp || 100}
-              </ThemedText>
+              <>
+                <ThemedText type="title" style={styles.whiteText}>
+                  HP: {user?.currentHp || 100}/{user?.maxHp || 100}
+                </ThemedText>
+                <ThemedText type="title" style={styles.whiteText}>
+                  MP: {user?.currentMp || 100}/{user?.maxMp || 100}
+                </ThemedText>
+              </>
             )}
           </ThemedView>
         </View>
