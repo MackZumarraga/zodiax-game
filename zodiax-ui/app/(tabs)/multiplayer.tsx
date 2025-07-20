@@ -223,10 +223,10 @@ export default function MultiplayerScreen() {
           />
           <ThemedView style={styles.enemyInfo}>
             <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-              HP: {opponent?.hp || 100}/{opponent?.maxHp || 100}
+              HP: {opponent?.hp ?? 100}/{opponent?.maxHp ?? 100}
             </ThemedText>
             <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-              MP: {opponent?.mp || 10}/{opponent?.maxMp || 10}
+              MP: {opponent?.mp ?? 10}/{opponent?.maxMp ?? 10}
             </ThemedText>
           </ThemedView>
         </View>
@@ -257,10 +257,10 @@ export default function MultiplayerScreen() {
           />
           <ThemedView style={styles.userInfo}>
             <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-              HP: {player?.hp || 100}/{player?.maxHp || 100}
+              HP: {player?.hp ?? 100}/{player?.maxHp ?? 100}
             </ThemedText>
             <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-              MP: {player?.mp || 10}/{player?.maxMp || 10}
+              MP: {player?.mp ?? 10}/{player?.maxMp ?? 10}
             </ThemedText>
           </ThemedView>
         </View>
