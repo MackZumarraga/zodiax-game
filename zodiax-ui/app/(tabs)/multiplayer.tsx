@@ -69,7 +69,7 @@ export default function MultiplayerScreen() {
         if (data.gameState === 'ended') {
           Alert.alert(
             'Game Over!',
-            data.lastAction.winner === player?.name ? 'You Won!' : 'You Lost!',
+            data.lastAction.winner === data.player.name ? 'You Won!' : 'You Lost!',
             [{ text: 'OK', onPress: () => handleBackToMenu() }]
           );
         }
