@@ -36,6 +36,23 @@ class SocketManager {
     this.socket.on('error', (error: any) => {
       this.gameCallbacks.onError?.(error);
     });
+
+    // Character selection events
+    this.socket.on('availableCharacters', (data: any) => {
+      this.gameCallbacks.onAvailableCharacters?.(data);
+    });
+
+    this.socket.on('characterTaken', (data: any) => {
+      this.gameCallbacks.onCharacterTaken?.(data);
+    });
+
+    this.socket.on('characterSelected', (data: any) => {
+      this.gameCallbacks.onCharacterSelected?.(data);
+    });
+
+    this.socket.on('characterFreed', (data: any) => {
+      this.gameCallbacks.onCharacterFreed?.(data);
+    });
   }
 
   disconnect() {
@@ -45,11 +62,11 @@ class SocketManager {
     }
   }
 
-  findMatch(playerName: string) {
+  selectCharacter(character: string) {
     if (!this.socket?.connected) {
       throw new Error('Not connected to server');
     }
-    this.socket.emit('findMatch', { name: playerName });
+    this.socket.emit('selectCharacter', { character });
   }
 
   sendPlayerAction(roomId: string, action: string) {
@@ -65,6 +82,10 @@ class SocketManager {
     onGameUpdate?: (updateData: any) => void;
     onOpponentDisconnected?: () => void;
     onError?: (error: any) => void;
+    onAvailableCharacters?: (data: any) => void;
+    onCharacterTaken?: (data: any) => void;
+    onCharacterSelected?: (data: any) => void;
+    onCharacterFreed?: (data: any) => void;
   }) {
     this.gameCallbacks = callbacks;
   }

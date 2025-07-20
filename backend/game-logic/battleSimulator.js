@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { skillBattleSystem } from './skills/index.js';
 const prisma = new PrismaClient();
 
 // Turn system state
@@ -23,52 +24,32 @@ export async function performAction(playerId, enemyId, action) {
   
   console.log(`Before ${action}: Player HP=${player.currentHp}, Enemy HP=${enemy.currentHp}`);
   
-  let log = '';
-  switch (action) {
-    case 'attack': {
-      const damage = getRandom(1, 49);
-      enemy.currentHp -= damage;
-      log = `Player attacked enemy for ${damage} damage`;
-      break;
-    }
-    case 'block': {
-      const blockPercent = getRandom(20, 40);
-      log = `Player is blocking, reducing incoming damage by ${blockPercent}%`;
-      break;
-    }
-    case 'heal': {
-      if (player.currentMp < 5) {
-        log = 'Not enough MP to heal';
-        break;
-      }
-      player.currentMp -= 5;
-      const healPercent = getRandom(20, 40);
-      const healAmount = Math.floor(player.maxHp * (healPercent / 100));
-      player.currentHp = Math.min(player.maxHp, player.currentHp + healAmount);
-      log = `Player healed for ${healAmount} HP`;
-      break;
-    }
-    case 'charge': {
-      const chargeAmount = getRandom(3, 5);
-      player.currentMp = Math.min(player.maxMp, player.currentMp + chargeAmount);
-      log = `Player charged ${chargeAmount} MP`;
-      break;
-    }
-    case 'curse': {
-      if (player.currentMp < 7) {
-        log = 'Not enough MP to curse';
-        break;
-      }
-      player.currentMp -= 7;
-      const curseDamagePercent = getRandom(60, 80);
-      const curseDamage = Math.floor(enemy.maxHp * (curseDamagePercent / 100));
-      enemy.currentHp -= curseDamage;
-      log = `Player cursed enemy for ${curseDamage} damage`;
-      break;
-    }
-    default:
-      log = 'Unknown action';
-  }
+  // Create temporary player objects for the skill system
+  const playerObj = {
+    name: 'Player',
+    hp: player.currentHp,
+    mp: player.currentMp,
+    maxHp: player.maxHp,
+    maxMp: player.maxMp
+  };
+  
+  const enemyObj = {
+    name: 'Enemy',
+    hp: enemy.currentHp,
+    mp: enemy.currentMp || 10,
+    maxHp: enemy.maxHp,
+    maxMp: enemy.maxMp || 10
+  };
+
+  // Execute the action using the skill system
+  const result = await skillBattleSystem.executeAction(playerObj, enemyObj, action);
+  
+  // Update the original objects with new values
+  player.currentHp = playerObj.hp;
+  player.currentMp = playerObj.mp;
+  enemy.currentHp = enemyObj.hp;
+  
+  let log = result.message || 'Unknown action';
   
   console.log(`After ${action}: Player HP=${player.currentHp}, Enemy HP=${enemy.currentHp}`);
   
@@ -77,11 +58,11 @@ export async function performAction(playerId, enemyId, action) {
   
   // Only update enemy if it was actually modified (attacked or cursed)
   if (action === 'attack' || action === 'curse') {
-    await prisma.user.update({ where: { id: enemyId }, data: { currentHp: enemy.currentHp } });
+    await prisma.user.update({ where: { id: enemyId }, data: { currentHp: enemyObj.hp } });
   }
   
   // Check win conditions (only for actions that damage enemy)
-  if ((action === 'attack' || action === 'curse') && enemy.currentHp <= 0) {
+  if ((action === 'attack' || action === 'curse') && enemyObj.hp <= 0) {
     gameState = 'ended';
     log += ' - Enemy defeated! You win!';
     return log;

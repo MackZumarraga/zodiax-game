@@ -5,6 +5,20 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { attackCommand, blockCommand, healCommand, curseCommand, startGameCommand } from '../manager/basic-commands-handler';
 
+// Helper function to get avatar image based on player name
+const getAvatarImage = (name: string) => {
+  const lowerName = name?.toLowerCase() || '';
+  
+  if (lowerName.includes('shay shay') || lowerName.includes('shayshay')) {
+    return require('@/assets/images/shayshay.png');
+  } else if (lowerName.includes('charlotte')) {
+    return require('@/assets/images/charlotte.png');
+  }
+  
+  // Default fallback - could add more characters here
+  return require('@/assets/images/shayshay.png');
+};
+
 export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
   const [enemy, setEnemy] = useState<any>(null);
@@ -141,7 +155,7 @@ export default function HomeScreen() {
             {loading ? 'Enemy' : enemy?.name || 'Enemy'}
           </ThemedText>
           <Image
-            source={require('@/assets/images/charlotte.png')}
+            source={getAvatarImage(enemy?.name)}
             style={styles.enemyPhoto}
           />
           <ThemedView style={styles.enemyInfo}>
@@ -173,7 +187,7 @@ export default function HomeScreen() {
             {loading ? 'Your Character' : user?.name || 'Your Character'}
           </ThemedText>
           <Image
-            source={require('@/assets/images/shayshay.png')}
+            source={getAvatarImage(user?.name)}
             style={styles.userPhoto}
           />
           <ThemedView style={styles.userInfo}>

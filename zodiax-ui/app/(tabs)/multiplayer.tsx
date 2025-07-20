@@ -5,9 +5,22 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { socketManager } from '../manager/socket-handler';
 
+// Helper function to get avatar image based on character name
+const getAvatarImage = (characterName: string) => {
+  if (characterName === 'Shay Shay') {
+    return require('@/assets/images/shayshay.png');
+  } else if (characterName === 'Charlotte') {
+    return require('@/assets/images/charlotte.png');
+  }
+  // Default fallback
+  return require('@/assets/images/shayshay.png');
+};
+
 export default function MultiplayerScreen() {
-  const [playerName, setPlayerName] = useState('');
   const [gameState, setGameState] = useState<'menu' | 'searching' | 'playing'>('menu');
+  const [availableCharacters, setAvailableCharacters] = useState<string[]>([]);
+  const [takenCharacters, setTakenCharacters] = useState<string[]>([]);
+  const [selectedCharacter, setSelectedCharacter] = useState<string>('');
   const [gameData, setGameData] = useState<any>(null);
   const [player, setPlayer] = useState<any>(null);
   const [opponent, setOpponent] = useState<any>(null);
@@ -18,6 +31,22 @@ export default function MultiplayerScreen() {
   useEffect(() => {
     // Setup socket callbacks
     socketManager.setGameCallbacks({
+      onAvailableCharacters: (data: any) => {
+        console.log('Available characters:', data);
+        setAvailableCharacters(data.characters);
+        setTakenCharacters(data.taken);
+      },
+      onCharacterTaken: (data: any) => {
+        Alert.alert('Character Taken', `${data.character} has already been selected by another player.`);
+      },
+      onCharacterSelected: (data: any) => {
+        console.log('Character selected:', data);
+        setTakenCharacters(prev => [...prev, data.character]);
+      },
+      onCharacterFreed: (data: any) => {
+        console.log('Character freed:', data);
+        setTakenCharacters(prev => prev.filter(char => char !== data.character));
+      },
       onWaitingForMatch: () => {
         setGameState('searching');
       },
@@ -41,7 +70,7 @@ export default function MultiplayerScreen() {
           Alert.alert(
             'Game Over!',
             data.lastAction.winner === player?.name ? 'You Won!' : 'You Lost!',
-            [{ text: 'OK', onPress: () => setGameState('menu') }]
+            [{ text: 'OK', onPress: () => handleBackToMenu() }]
           );
         }
       },
@@ -49,7 +78,7 @@ export default function MultiplayerScreen() {
         Alert.alert(
           'Opponent Disconnected',
           'Your opponent has left the game.',
-          [{ text: 'OK', onPress: () => setGameState('menu') }]
+          [{ text: 'OK', onPress: () => handleBackToMenu() }]
         );
       },
       onError: (error: any) => {
@@ -65,12 +94,13 @@ export default function MultiplayerScreen() {
     };
   }, []);
 
-  const handleFindMatch = () => {
-    if (!playerName.trim()) {
-      Alert.alert('Error', 'Please enter your name');
+  const handleCharacterSelect = (character: string) => {
+    if (takenCharacters.includes(character)) {
+      Alert.alert('Character Taken', `${character} has already been selected by another player.`);
       return;
     }
-    socketManager.findMatch(playerName.trim());
+    setSelectedCharacter(character);
+    socketManager.selectCharacter(character);
   };
 
   const handleAction = (action: string) => {
@@ -92,11 +122,13 @@ export default function MultiplayerScreen() {
   const handleBackToMenu = () => {
     socketManager.disconnect();
     setGameState('menu');
+    setSelectedCharacter('');
     setGameData(null);
     setPlayer(null);
     setOpponent(null);
     setRoomId('');
     setLastAction(null);
+    setTakenCharacters([]);
     socketManager.connect();
   };
 
@@ -105,17 +137,58 @@ export default function MultiplayerScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.menuContainer}>
           <ThemedText type="title" style={styles.titleText}>
-            Multiplayer Battle
+            Choose Your Character
           </ThemedText>
-          <TextInput
-            style={styles.nameInput}
-            placeholder="Enter your name"
-            placeholderTextColor="#666"
-            value={playerName}
-            onChangeText={setPlayerName}
-            maxLength={20}
-          />
-          <Button title="Find Match" onPress={handleFindMatch} />
+          <ThemedText style={styles.subtitleText}>
+            Select a character to begin your battle!
+          </ThemedText>
+          
+          <View style={styles.characterSelection}>
+            {availableCharacters.map((character) => {
+              const isCharacterTaken = takenCharacters.includes(character);
+              const isSelected = selectedCharacter === character;
+              
+              return (
+                <TouchableOpacity
+                  key={character}
+                  style={[
+                    styles.characterCard,
+                    isCharacterTaken && styles.characterCardTaken,
+                    isSelected && styles.characterCardSelected
+                  ]}
+                  onPress={() => handleCharacterSelect(character)}
+                  disabled={isCharacterTaken}
+                >
+                  <Image
+                    source={getAvatarImage(character)}
+                    style={[
+                      styles.characterImage,
+                      isCharacterTaken && styles.characterImageTaken
+                    ]}
+                  />
+                  <ThemedText style={[
+                    styles.characterName,
+                    isCharacterTaken && styles.characterNameTaken,
+                    isSelected && styles.characterNameSelected
+                  ]}>
+                    {character}
+                  </ThemedText>
+                  {isCharacterTaken && (
+                    <ThemedText style={styles.takenText}>TAKEN</ThemedText>
+                  )}
+                  {isSelected && (
+                    <ThemedText style={styles.selectedText}>SELECTED</ThemedText>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          
+          {selectedCharacter && (
+            <ThemedText style={styles.waitingText}>
+              Waiting for opponent to select their character...
+            </ThemedText>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -145,7 +218,7 @@ export default function MultiplayerScreen() {
             {opponent?.name || 'Opponent'}
           </ThemedText>
           <Image
-            source={require('@/assets/images/charlotte.png')}
+            source={getAvatarImage(opponent?.name)}
             style={styles.enemyPhoto}
           />
           <ThemedView style={styles.enemyInfo}>
@@ -179,7 +252,7 @@ export default function MultiplayerScreen() {
             {player?.name || 'You'}
           </ThemedText>
           <Image
-            source={require('@/assets/images/shayshay.png')}
+            source={getAvatarImage(player?.name)}
             style={styles.userPhoto}
           />
           <ThemedView style={styles.userInfo}>
@@ -308,13 +381,73 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
   },
-  nameInput: {
-    backgroundColor: '#333',
-    color: '#fff',
-    padding: 15,
-    borderRadius: 8,
-    width: '100%',
+  subtitleText: {
+    color: '#cccccc',
     fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  characterSelection: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 20,
+  },
+  characterCard: {
+    backgroundColor: '#333',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minWidth: 120,
+  },
+  characterCardSelected: {
+    borderColor: '#00ff00',
+    backgroundColor: '#004400',
+  },
+  characterCardTaken: {
+    backgroundColor: '#222',
+    opacity: 0.6,
+  },
+  characterImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
+  characterImageTaken: {
+    opacity: 0.5,
+  },
+  characterName: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  characterNameSelected: {
+    color: '#00ff00',
+  },
+  characterNameTaken: {
+    color: '#666',
+  },
+  selectedText: {
+    color: '#00ff00',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  takenText: {
+    color: '#ff0000',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  waitingText: {
+    color: '#ffff00',
+    fontSize: 16,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   enemyPhoto: {
     height: 150,

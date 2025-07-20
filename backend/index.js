@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
 import { handleAttack, handleBlock, handleHeal, handleCurse, handleStartGame } from './game-logic/battleController.js';
+import { skillBattleSystem } from './game-logic/skills/index.js';
 
 const app = express();
 const server = createServer(app);
@@ -40,20 +41,41 @@ app.post('/game/start', handleStartGame);
 // Game rooms storage
 const gameRooms = new Map();
 const waitingPlayers = [];
+const selectedCharacters = new Set(); // Track which characters are taken
 
 // Socket connection handling
 io.on('connection', (socket) => {
   console.log('Player connected:', socket.id);
 
-  socket.on('findMatch', (playerData) => {
-    console.log('Player looking for match:', playerData.name);
+  // Send available characters when client connects
+  socket.emit('availableCharacters', {
+    characters: ['Shay Shay', 'Charlotte'],
+    taken: Array.from(selectedCharacters)
+  });
+
+  socket.on('selectCharacter', (characterData) => {
+    const { character } = characterData;
+    console.log('Player selecting character:', character);
+
+    // Check if character is available
+    if (selectedCharacters.has(character)) {
+      socket.emit('characterTaken', { character });
+      return;
+    }
+
+    // Add character to selected set
+    selectedCharacters.add(character);
     
+    // Notify all clients about character selection
+    io.emit('characterSelected', { character, socketId: socket.id });
+
     if (waitingPlayers.length === 0) {
       // First player waiting
       waitingPlayers.push({
         socketId: socket.id,
         socket: socket,
-        name: playerData.name,
+        name: character,
+        character: character,
         hp: 100,
         mp: 10,
         maxHp: 100,
@@ -66,7 +88,8 @@ io.on('connection', (socket) => {
       const player2 = {
         socketId: socket.id,
         socket: socket,
-        name: playerData.name,
+        name: character,
+        character: character,
         hp: 100,
         mp: 10,
         maxHp: 100,
@@ -107,7 +130,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('playerAction', (actionData) => {
+  socket.on('playerAction', async (actionData) => {
     const { roomId, action, value } = actionData;
     const room = gameRooms.get(roomId);
     
@@ -125,7 +148,7 @@ io.on('connection', (socket) => {
     }
 
     // Process the action
-    let actionResult = processGameAction(currentPlayer, opponent, action, value);
+    let actionResult = await processGameAction(currentPlayer, opponent, action, value);
     
     // Check win condition
     if (opponent.hp <= 0) {
@@ -163,76 +186,41 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Player disconnected:', socket.id);
     
-    // Remove from waiting players
+    // Remove from waiting players and free up their character
     const waitingIndex = waitingPlayers.findIndex(p => p.socketId === socket.id);
     if (waitingIndex !== -1) {
+      const waitingPlayer = waitingPlayers[waitingIndex];
+      selectedCharacters.delete(waitingPlayer.character);
       waitingPlayers.splice(waitingIndex, 1);
+      
+      // Notify all clients that character is available again
+      io.emit('characterFreed', { character: waitingPlayer.character });
     }
 
     // Handle disconnection from active games
     for (const [roomId, room] of gameRooms.entries()) {
       if (room.player1.socketId === socket.id || room.player2.socketId === socket.id) {
+        const disconnectedPlayer = room.player1.socketId === socket.id ? room.player1 : room.player2;
         const otherPlayer = room.player1.socketId === socket.id ? room.player2 : room.player1;
+        
+        // Free up the disconnected player's character
+        selectedCharacters.delete(disconnectedPlayer.character);
+        selectedCharacters.delete(otherPlayer.character);
+        
         otherPlayer.socket.emit('opponentDisconnected');
         gameRooms.delete(roomId);
+        
+        // Notify all clients that both characters are available again
+        io.emit('characterFreed', { character: disconnectedPlayer.character });
+        io.emit('characterFreed', { character: otherPlayer.character });
         break;
       }
     }
   });
 });
 
-function processGameAction(currentPlayer, opponent, action, value) {
-  const result = { action, success: false, message: '', damage: 0, healing: 0 };
-
-  switch (action) {
-    case 'attack':
-      const damage = Math.floor(Math.random() * 49) + 1;
-      opponent.hp = Math.max(0, opponent.hp - damage);
-      result.success = true;
-      result.damage = damage;
-      result.message = `${currentPlayer.name} attacks for ${damage} damage!`;
-      break;
-
-    case 'heal':
-      if (currentPlayer.mp < 5) {
-        result.message = 'Not enough MP to heal!';
-        return result;
-      }
-      const healing = Math.floor(Math.random() * (currentPlayer.maxHp * 0.2)) + Math.floor(currentPlayer.maxHp * 0.2);
-      currentPlayer.mp -= 5;
-      currentPlayer.hp = Math.min(currentPlayer.maxHp, currentPlayer.hp + healing);
-      result.success = true;
-      result.healing = healing;
-      result.message = `${currentPlayer.name} heals for ${healing} HP!`;
-      break;
-
-    case 'curse':
-      if (currentPlayer.mp < 7) {
-        result.message = 'Not enough MP to curse!';
-        return result;
-      }
-      const curseDamage = Math.floor(Math.random() * (opponent.maxHp * 0.2)) + Math.floor(opponent.maxHp * 0.6);
-      currentPlayer.mp -= 7;
-      opponent.hp = Math.max(0, opponent.hp - curseDamage);
-      result.success = true;
-      result.damage = curseDamage;
-      result.message = `${currentPlayer.name} curses ${opponent.name} for ${curseDamage} damage!`;
-      break;
-
-    case 'block':
-      result.success = true;
-      result.message = `${currentPlayer.name} blocks and prepares for defense!`;
-      break;
-
-    case 'charge':
-      const mpGain = Math.floor(Math.random() * 3) + 3;
-      currentPlayer.mp = Math.min(currentPlayer.maxMp, currentPlayer.mp + mpGain);
-      result.success = true;
-      result.message = `${currentPlayer.name} charges and gains ${mpGain} MP!`;
-      break;
-  }
-
-  return result;
+async function processGameAction(currentPlayer, opponent, action, value) {
+  return await skillBattleSystem.processGameAction(currentPlayer, opponent, action, value);
 }
 
 server.listen(4000, () => console.log('Zodiax backend running on port 4000 with Socket.IO'));
