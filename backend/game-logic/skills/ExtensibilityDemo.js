@@ -206,7 +206,7 @@ export async function demonstrateExtensibility() {
 
   // Test some of the new skills
   const player = { name: 'Hero', hp: 20, mp: 15, maxHp: 100, maxMp: 15 };
-  const enemy = { name: 'Monster', hp: 30, mp: 10, maxHp: 120, maxMp: 10 };
+  const enemy = { name: 'Monster', hp: 30, mp: 15, maxHp: 120, maxMp: 15 };
 
   console.log('\nTesting conditional skill (desperate_strike with low HP):');
   let result = await skillBattleSystem.executeAction(player, enemy, 'desperate_strike');

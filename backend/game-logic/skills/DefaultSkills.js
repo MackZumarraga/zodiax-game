@@ -5,39 +5,40 @@ import { skillRegistry } from './SkillRegistry.js';
  * Register all default skills that match the current game mechanics
  */
 export function registerDefaultSkills() {
-  // Attack - deals 1-49 damage
-  const attack = SkillFactory.createAttackSkill('attack', { min: 1, max: 49 }, 0);
+  // Attack - deals 1-35 damage (reduced for better balance)
+  const attack = SkillFactory.createAttackSkill('attack', { min: 1, max: 35 }, 0);
   skillRegistry.register(attack);
 
-  // Heal - costs 5 MP, heals 20-40% of max HP
+  // Heal - costs 6 MP, heals 20-40% of max HP
   const heal = new Skill({
     name: 'heal',
     type: 'support',
-    mpCost: 5,
+    mpCost: 6,
     healing: (caster, target) => {
       const healPercent = Math.floor(Math.random() * 21) + 20; // 20-40%
       return Math.floor(caster.maxHp * (healPercent / 100));
     },
     target: 'self',
-    description: 'Heals for 20-40% of max HP, costs 5 MP'
+    description: 'Heals for 20-40% of max HP, costs 6 MP'
   });
   skillRegistry.register(heal);
 
-  // Curse - costs 7 MP, deals 60-80% of enemy's max HP as damage
-  const curse = SkillFactory.createPercentageSkill('curse', [60, 80], 7);
+  // Curse - costs 6 MP, deals 25-40% of enemy's max HP as damage
+  const curse = SkillFactory.createPercentageSkill('curse', [25, 40], 6);
   skillRegistry.register(curse);
 
-  // Block - defensive action that could reduce incoming damage
+  // Block - defensive action with damage reflection
   const block = new Skill({
     name: 'block',
     type: 'defensive',
     mpCost: 0,
     target: 'self',
-    description: 'Blocks and prepares for defense',
+    description: 'Blocks incoming damage (50% reduction + 25% reflection)',
     effect: (caster, target, result) => {
-      // For now, block doesn't have immediate effects but could be extended
-      // to add a "blocking" status or damage reduction buff
-      result.message = `${caster.name || 'Player'} blocks and prepares for defense!`;
+      // Set blocking status for damage reduction and reflection
+      caster.isBlocking = true;
+      caster.reflectDamage = true;
+      result.message = `${caster.name || 'Player'} blocks and prepares for defense with damage reflection!`;
       return result;
     }
   });
@@ -49,10 +50,10 @@ export function registerDefaultSkills() {
     type: 'utility',
     mpCost: 0,
     target: 'self',
-    description: 'Gains 3-5 MP',
+    description: 'Gains 2-3 MP',
     effect: (caster, target, result) => {
-      const mpGain = Math.floor(Math.random() * 3) + 3; // 3-5 MP
-      const maxMp = caster.maxMp || 10;
+      const mpGain = Math.floor(Math.random() * 2) + 2; // 2-3 MP (reduced)
+      const maxMp = caster.maxMp || 15;
       caster.mp = Math.min(maxMp, caster.mp + mpGain);
       result.message = `${caster.name || 'Player'} charges and gains ${mpGain} MP!`;
       return result;

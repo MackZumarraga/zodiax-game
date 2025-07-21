@@ -2,8 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import { skillBattleSystem } from './skills/index.js';
 const prisma = new PrismaClient();
 
-// Turn system state
-let currentTurn = 'player'; // 'player' or 'enemy'
+// Turn system state - randomized each battle
+let currentTurn = Math.random() < 0.5 ? 'player' : 'enemy'; // Randomized starting turn
 let gameState = 'waiting'; // 'waiting', 'active', 'ended'
 
 function getRandom(min, max) {
@@ -36,9 +36,9 @@ export async function performAction(playerId, enemyId, action) {
   const enemyObj = {
     name: 'Enemy',
     hp: enemy.currentHp,
-    mp: enemy.currentMp || 10,
+    mp: enemy.currentMp || 15,
     maxHp: enemy.maxHp,
-    maxMp: enemy.maxMp || 10
+    maxMp: enemy.maxMp || 15
   };
 
   // Execute the action using the skill system
@@ -108,13 +108,13 @@ export async function resetAllPlayersStats() {
     data: {
       currentHp: 100,
       maxHp: 100,
-      currentMp: 10,
-      maxMp: 10
+      currentMp: 15,
+      maxMp: 15
     }
   });
   
-  // Reset game state
-  currentTurn = 'player';
+  // Reset game state with random turn order
+  currentTurn = Math.random() < 0.5 ? 'player' : 'enemy';
   gameState = 'active';
   
   return 'Game started! All players HP and MP reset to maximum.';

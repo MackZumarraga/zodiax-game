@@ -8,17 +8,17 @@ async function testSkillSystem() {
   const player1 = {
     name: 'Alice',
     hp: 100,
-    mp: 10,
+    mp: 15,
     maxHp: 100,
-    maxMp: 10
+    maxMp: 15
   };
 
   const player2 = {
     name: 'Bob',
     hp: 100,
-    mp: 10,
+    mp: 15,
     maxHp: 100,
-    maxMp: 10
+    maxMp: 15
   };
 
   console.log('Initial state:');

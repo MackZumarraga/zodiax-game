@@ -53,11 +53,31 @@ export class SkillDispatcher {
     // Apply damage
     if (result.damage > 0) {
       const targetToHit = skill?.target === 'self' ? caster : target;
-      targetToHit.hp = Math.max(0, targetToHit.hp - result.damage);
+      let actualDamage = result.damage;
+      
+      // Check for blocking (50% damage reduction)
+      if (targetToHit.isBlocking) {
+        actualDamage = Math.floor(actualDamage * 0.5);
+        result.message += ` (${targetToHit.name || 'Target'} blocked for 50% damage reduction!)`;
+        
+        // Damage reflection (25% of original damage back to attacker)
+        if (targetToHit.reflectDamage) {
+          const reflectedDamage = Math.floor(result.damage * 0.25);
+          caster.hp = Math.max(0, caster.hp - reflectedDamage);
+          result.message += ` Reflected ${reflectedDamage} damage back to ${caster.name || 'Attacker'}!`;
+        }
+        
+        // Clear blocking status after use
+        targetToHit.isBlocking = false;
+        targetToHit.reflectDamage = false;
+      }
+      
+      targetToHit.hp = Math.max(0, targetToHit.hp - actualDamage);
       
       // Execute damage hooks
       await this.executeHooks('onDamage', { 
-        damage: result.damage, 
+        damage: actualDamage, 
+        originalDamage: result.damage,
         target: targetToHit, 
         source: caster, 
         gameState 

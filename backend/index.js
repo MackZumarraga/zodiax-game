@@ -77,9 +77,9 @@ io.on('connection', (socket) => {
         name: character,
         character: character,
         hp: 100,
-        mp: 10,
+        mp: 15,
         maxHp: 100,
-        maxMp: 10
+        maxMp: 15
       });
       socket.emit('waitingForMatch');
     } else {
@@ -91,9 +91,9 @@ io.on('connection', (socket) => {
         name: character,
         character: character,
         hp: 100,
-        mp: 10,
+        mp: 15,
         maxHp: 100,
-        maxMp: 10
+        maxMp: 15
       };
 
       const roomId = `room_${Date.now()}`;
