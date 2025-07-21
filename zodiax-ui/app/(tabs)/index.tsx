@@ -167,7 +167,7 @@ export default function HomeScreen() {
                   HP: {enemy?.currentHp || 100}/{enemy?.maxHp || 100}
                 </ThemedText>
                 <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-                  MP: {enemy?.currentMp || 10}/{enemy?.maxMp || 10}
+                  MP: {enemy?.currentMp || 15}/{enemy?.maxMp || 15}
                 </ThemedText>
                 {enemyPopupText && (
                   <View style={styles.popupText}>
@@ -199,7 +199,7 @@ export default function HomeScreen() {
                   HP: {user?.currentHp || 100}/{user?.maxHp || 100}
                 </ThemedText>
                 <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-                  MP: {user?.currentMp || 10}/{user?.maxMp || 10}
+                  MP: {user?.currentMp || 15}/{user?.maxMp || 15}
                 </ThemedText>
                 {userPopupText && (
                   <View style={styles.popupText}>
@@ -222,31 +222,31 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={[
                   styles.customButton,
-                  (user?.currentMp || 0) < 5 ? styles.disabledButton : styles.enabledButton
+                  (user?.currentMp || 0) < 6 ? styles.disabledButton : styles.enabledButton
                 ]}
                 onPress={handleHeal}
-                disabled={(user?.currentMp || 0) < 5}
+                disabled={(user?.currentMp || 0) < 6}
               >
                 <Text style={[
                   styles.buttonText,
-                  (user?.currentMp || 0) < 5 ? styles.disabledButtonText : styles.enabledButtonText
+                  (user?.currentMp || 0) < 6 ? styles.disabledButtonText : styles.enabledButtonText
                 ]}>
-                  Heal (5 MP)
+                  Heal (6 MP)
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.customButton,
-                  (user?.currentMp || 0) < 7 ? styles.disabledButton : styles.enabledButton
+                  (user?.currentMp || 0) < 6 ? styles.disabledButton : styles.enabledButton
                 ]}
                 onPress={handleCurse}
-                disabled={(user?.currentMp || 0) < 7}
+                disabled={(user?.currentMp || 0) < 6}
               >
                 <Text style={[
                   styles.buttonText,
-                  (user?.currentMp || 0) < 7 ? styles.disabledButtonText : styles.enabledButtonText
+                  (user?.currentMp || 0) < 6 ? styles.disabledButtonText : styles.enabledButtonText
                 ]}>
-                  Curse (7 MP)
+                  Curse (6 MP)
                 </Text>
               </TouchableOpacity>
             </>

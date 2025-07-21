@@ -107,11 +107,11 @@ export default function MultiplayerScreen() {
     if (!isMyTurn || !roomId) return;
     
     // Check MP requirements
-    if (action === 'heal' && player.mp < 5) {
+    if (action === 'heal' && player.mp < 6) {
       Alert.alert('Error', 'Not enough MP to heal!');
       return;
     }
-    if (action === 'curse' && player.mp < 7) {
+    if (action === 'curse' && player.mp < 6) {
       Alert.alert('Error', 'Not enough MP to curse!');
       return;
     }
@@ -226,7 +226,7 @@ export default function MultiplayerScreen() {
               HP: {opponent?.hp ?? 100}/{opponent?.maxHp ?? 100}
             </ThemedText>
             <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-              MP: {opponent?.mp ?? 10}/{opponent?.maxMp ?? 10}
+              MP: {opponent?.mp ?? 15}/{opponent?.maxMp ?? 15}
             </ThemedText>
           </ThemedView>
         </View>
@@ -260,7 +260,7 @@ export default function MultiplayerScreen() {
               HP: {player?.hp ?? 100}/{player?.maxHp ?? 100}
             </ThemedText>
             <ThemedText type="title" style={[styles.whiteText, styles.hpMpText]}>
-              MP: {player?.mp ?? 10}/{player?.maxMp ?? 10}
+              MP: {player?.mp ?? 15}/{player?.maxMp ?? 15}
             </ThemedText>
           </ThemedView>
         </View>
@@ -279,31 +279,31 @@ export default function MultiplayerScreen() {
           <TouchableOpacity
             style={[
               styles.customButton,
-              !isMyTurn || (player?.mp || 0) < 5 ? styles.disabledButton : styles.enabledButton
+              !isMyTurn || (player?.mp || 0) < 6 ? styles.disabledButton : styles.enabledButton
             ]}
             onPress={() => handleAction('heal')}
-            disabled={!isMyTurn || (player?.mp || 0) < 5}
+            disabled={!isMyTurn || (player?.mp || 0) < 6}
           >
             <Text style={[
               styles.buttonText,
-              !isMyTurn || (player?.mp || 0) < 5 ? styles.disabledButtonText : styles.enabledButtonText
+              !isMyTurn || (player?.mp || 0) < 6 ? styles.disabledButtonText : styles.enabledButtonText
             ]}>
-              Heal (5 MP)
+              Heal (6 MP)
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.customButton,
-              !isMyTurn || (player?.mp || 0) < 7 ? styles.disabledButton : styles.enabledButton
+              !isMyTurn || (player?.mp || 0) < 6 ? styles.disabledButton : styles.enabledButton
             ]}
             onPress={() => handleAction('curse')}
-            disabled={!isMyTurn || (player?.mp || 0) < 7}
+            disabled={!isMyTurn || (player?.mp || 0) < 6}
           >
             <Text style={[
               styles.buttonText,
-              !isMyTurn || (player?.mp || 0) < 7 ? styles.disabledButtonText : styles.enabledButtonText
+              !isMyTurn || (player?.mp || 0) < 6 ? styles.disabledButtonText : styles.enabledButtonText
             ]}>
-              Curse (7 MP)
+              Curse (6 MP)
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
